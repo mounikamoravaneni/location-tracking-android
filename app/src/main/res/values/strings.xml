@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">LocationTracking</string>
+    <string name="google_maps_key">AIzaSyB0RBRTuyihz1s6Or4XznZAhCNQ_1wC2Pc</string>
+</resources>
