@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -18,6 +20,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
     }
 
     buildTypes {
@@ -42,10 +45,12 @@ android {
 }
 
 dependencies {
-    implementation ("org.osmdroid:osmdroid-android:6.1.18")
+
+    implementation (libs.android.maps.utils)
+    implementation (libs.osmdroid.android)
     //google map sdk
-    implementation("com.google.maps.android:maps-compose:2.14.0") // check latest version
-    implementation ("com.google.android.gms:play-services-maps:18.1.0")
+    implementation(libs.maps.compose) // check latest version
+    implementation (libs.play.services.maps)
     // Accompanist Permissions for Jetpack Compose
     implementation(libs.accompanist.permissions)
     implementation(libs.gson)

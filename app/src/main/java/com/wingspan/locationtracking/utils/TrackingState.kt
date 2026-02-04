@@ -1,6 +1,6 @@
 package com.wingspan.locationtracking.utils
 
-import com.wingspan.locationtracking.database.Session
+import com.wingspan.locationtracking.data.data.local.Session
 
 
 

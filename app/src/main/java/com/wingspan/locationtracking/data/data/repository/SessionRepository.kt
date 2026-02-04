@@ -1,8 +1,7 @@
-package com.wingspan.locationtracking.repository
+package com.wingspan.locationtracking.data.data.repository
 
-import android.app.blob.BlobStoreManager
-import com.wingspan.locationtracking.database.Session
-import com.wingspan.locationtracking.database.SessionDao
+import com.wingspan.locationtracking.data.data.local.SessionDao
+import com.wingspan.locationtracking.data.data.local.Session
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -17,4 +16,6 @@ class SessionRepository @Inject constructor(
     suspend fun insertSession(session: Session) = dao.insertSession(session)
 
     suspend fun getSessionById(id: String): Session? = dao.getSessionById(id)
+
+
 }

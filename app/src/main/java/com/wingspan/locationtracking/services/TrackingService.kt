@@ -1,5 +1,6 @@
 package com.wingspan.locationtracking.services
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -12,13 +13,12 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.lifecycle.viewModelScope
 import com.google.android.gms.location.*
 import com.wingspan.locationtracking.R
-import com.wingspan.locationtracking.database.AppDatabase
-import com.wingspan.locationtracking.database.Session
-import com.wingspan.locationtracking.model.GpsPoint
-import com.wingspan.locationtracking.repository.SessionRepository
+import com.wingspan.locationtracking.data.data.local.Session
+import com.wingspan.locationtracking.domain.model.GpsPoint
+import com.wingspan.locationtracking.data.data.repository.SessionRepository
+
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,11 +36,14 @@ class TrackingService : Service() {
         private const val NOTIFICATION_ID = 1
         const val ACTION_START = "START_TRACKING"
         const val ACTION_STOP = "STOP_TRACKING"
+        private var shouldSaveSession = false
+
+
         // Keep track of GPS points in memory
         private val trackedPoints = mutableListOf<GpsPoint>()
         private var startTime: Long = 0L
         private var endTime: Long = 0L
-        private var distance: Double = 0.0
+
         fun getStartTime(): Long = startTime
 
         fun getTrackedPoints(): List<GpsPoint> = trackedPoints.toList()
@@ -68,7 +71,9 @@ class TrackingService : Service() {
             context.startService(intent)
         }
 
-
+        fun setSaveSessionFlag(value: Boolean) {
+            shouldSaveSession = value
+        }
 
         fun getDistance(): Double {
             if (trackedPoints.size < 2) return 0.0
@@ -106,6 +111,12 @@ class TrackingService : Service() {
             override fun onLocationResult(result: LocationResult) {
                 super.onLocationResult(result)
                 result.locations.forEach { location ->
+
+                    // Ignore poor GPS points
+                    if (location.accuracy > 20f) {
+                        Log.d("GPS", "Poor accuracy: ${location.accuracy}m")
+                        return@forEach
+                    }
                     trackedPoints.add(
                         GpsPoint(
                             latitude = location.latitude,
@@ -114,6 +125,7 @@ class TrackingService : Service() {
                         )
                     )
                 }
+                updateNotification()
             }
         }
     }
@@ -122,10 +134,16 @@ class TrackingService : Service() {
         when (intent?.action) {
             ACTION_START -> startForegroundService()
             ACTION_STOP -> {  Log.d("TrackingService", "Stop clicked")
-
-                val endTime = System.currentTimeMillis()
-                val totalDistance = getDistance()
-                saveSession(startTime, endTime,totalDistance )
+                // Check if intent has extra to indicate it came from notification
+                val fromNotification = intent.getBooleanExtra("FROM_NOTIFICATION", false)
+                if (fromNotification) {
+                    setSaveSessionFlag(true)
+                }
+                if (shouldSaveSession) {
+                    val endTime = System.currentTimeMillis()
+                    val totalDistance = getDistance()
+                    saveSession(startTime, endTime, totalDistance)
+                }
 
                 stopForeground(true)
                 stopSelf()
@@ -135,30 +153,30 @@ class TrackingService : Service() {
     }
 
     private fun startForegroundService() {
-        //createNotificationChannel()   // 🔴 MUST
+
         startTime = System.currentTimeMillis()
         startForeground(
             NOTIFICATION_ID,
-            createNotification("Tracking location...")
+            createNotification("00:00", "0.0 km")
         )
         startLocationUpdates()
     }
 
-    private fun stopTracking() {
-        stopLocationUpdates()
-        endTime = System.currentTimeMillis()
-
-        val intent = Intent(ACTION_SESSION_COMPLETE).apply {
-            putExtra("startTime", startTime)
-            putExtra("endTime", endTime)
-            putExtra("distance", distance)
-        }
-
-        sendBroadcast(intent)
-
-        stopForeground(true)
-        stopSelf()
-    }
+//    private fun stopTracking() {
+//        stopLocationUpdates()
+//        endTime = System.currentTimeMillis()
+//
+//        val intent = Intent(ACTION_SESSION_COMPLETE).apply {
+//            putExtra("startTime", startTime)
+//            putExtra("endTime", endTime)
+//            putExtra("distance", distance)
+//        }
+//
+//        sendBroadcast(intent)
+//
+//        stopForeground(true)
+//        stopSelf()
+//    }
 
     private fun startLocationUpdates() {
         try {
@@ -172,15 +190,40 @@ class TrackingService : Service() {
         }
     }
 
-    private fun stopLocationUpdates() {
-        fusedLocationClient.removeLocationUpdates(locationCallback)
-    }
 
-    private fun createNotification(contentText: String): Notification {
+private fun updateNotification() {
+    val duration = formatDuration(System.currentTimeMillis() - startTime)
+    val distance = "%.2f km".format(calculateDistance() / 1000)
+
+    val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    manager.notify(
+        NOTIFICATION_ID,
+        createNotification(duration, distance)
+    )
+}
+    private fun calculateDistance(): Double {
+        if (trackedPoints.size < 2) return 0.0
+        var distance = 0.0
+        for (i in 1 until trackedPoints.size) {
+            val p1 = trackedPoints[i - 1]
+            val p2 = trackedPoints[i]
+            val result = FloatArray(1)
+            Location.distanceBetween(
+                p1.latitude, p1.longitude,
+                p2.latitude, p2.longitude,
+                result
+            )
+            distance += result[0]
+        }
+        return distance
+    }
+    private fun createNotification(duration: String,
+                                     distance: String): Notification {
 
         // 👉 Stop Button Intent
         val stopIntent = Intent(this, TrackingService::class.java).apply {
             action = ACTION_STOP
+            putExtra("FROM_NOTIFICATION", true)
         }
         val stopPendingIntent = PendingIntent.getService(
             this,
@@ -201,13 +244,13 @@ class TrackingService : Service() {
         }
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Location Mounika")
-            .setContentText(contentText)
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // replace with your icon
+            .setContentTitle("Location Tracking")
+            .setContentText("Duration: $duration • Distance: $distance")
+            .setSmallIcon(R.drawable.notification_icon) // replace with your icon
             .setOngoing(true)
-            // ⭐ STOP BUTTON
+            //  STOP BUTTON
             .addAction(
-                R.drawable.ic_stop,   // create stop icon OR use launcher icon
+                R.drawable.ic_stop,
                 ACTION_STOP,
                 stopPendingIntent
             )
@@ -216,20 +259,6 @@ class TrackingService : Service() {
 
 
 
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "Location Tracking",
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = "Tracks location in background"
-            }
-
-            val manager = getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(channel)
-        }
-    }
     override fun onBind(intent: Intent?): IBinder? = null
 
     fun saveSession(start: Long, end: Long, distance: Double) {
@@ -241,7 +270,7 @@ class TrackingService : Service() {
 
         CoroutineScope(Dispatchers.IO).launch{
 
-            val points = TrackingService.getTrackedPoints()
+            val points = getTrackedPoints()
 
             Log.d("TrackingVM", "Points Count = ${points.size}")
 
@@ -254,16 +283,25 @@ class TrackingService : Service() {
                 points = points
             )
 
-            Log.d("TrackingVM", "Session Object = $session")
+            Log.d("data service stop","--${session}")
 
             repository.insertSession(session)
 
             Log.d("TrackingVM", "Session Inserted Into Room DB")
 
-            TrackingService.clearTrackedPoints()
+           clearTrackedPoints()
 
             Log.d("TrackingVM", "Tracked Points Cleared")
         }
-}
+    }
 
+}
+@SuppressLint("DefaultLocale")
+fun formatDuration(durationMillis: Long): String {
+    val totalSeconds = durationMillis / 1000
+    val hours = totalSeconds / 3600
+    val minutes = (totalSeconds % 3600) / 60
+    val seconds = totalSeconds % 60
+
+    return String.format("%02d:%02d:%02d", hours, minutes, seconds)
 }

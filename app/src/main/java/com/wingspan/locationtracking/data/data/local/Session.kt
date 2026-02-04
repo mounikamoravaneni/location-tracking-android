@@ -1,9 +1,9 @@
-package com.wingspan.locationtracking.database
+package com.wingspan.locationtracking.data.data.local
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
-import com.wingspan.locationtracking.model.GpsPoint
+import com.wingspan.locationtracking.domain.model.GpsPoint
 
 @Entity(tableName = "sessions")
 data class Session(
@@ -20,5 +20,7 @@ data class Session(
     val distance: Double,        // total distance in meters
 
     @TypeConverters(GpsPointConverter::class)
-    val points: List<GpsPoint>   // recorded GPS points
+    val points: List<GpsPoint>  ,
+
+    val tollAmount: Double? = null
 )

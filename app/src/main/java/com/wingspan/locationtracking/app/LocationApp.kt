@@ -1,4 +1,4 @@
-package com.wingspan.locationtracking
+package com.wingspan.locationtracking.app
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp

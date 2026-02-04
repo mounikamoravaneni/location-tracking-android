@@ -1,4 +1,4 @@
-package com.wingspan.locationtracking.ui.theme
+package com.wingspan.locationtracking.ui.theme.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,13 +12,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import com.wingspan.locationtracking.OpenStreetMapView
-import com.wingspan.locationtracking.model.GpsPoint
+import com.wingspan.locationtracking.map.OpenStreetMapView
+import com.wingspan.locationtracking.domain.model.GpsPoint
 import com.wingspan.locationtracking.viewmodel.TrackerViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 @Composable
-fun SessionDetailScreen1(
+fun MapViewScreen(
     sessionId: String,
     navController: NavHostController,
     viewModel: TrackerViewModel = hiltViewModel()
@@ -26,14 +26,7 @@ fun SessionDetailScreen1(
 
     val session by viewModel.session.collectAsState()
 
-    val fakePoints = listOf(
-        GpsPoint(17.4415969, 78.4472591, 0),
-        GpsPoint(17.4419000, 78.4478000, 0),
-        GpsPoint(17.4423000, 78.4484000, 0),
-        GpsPoint(17.4428000, 78.4490000, 0),
-        GpsPoint(17.4433000, 78.4496000, 0),
-        GpsPoint(17.4439000, 78.4502000, 0)
-    )
+
 
     LaunchedEffect(sessionId) {
         viewModel.loadSession(sessionId)
@@ -41,11 +34,6 @@ fun SessionDetailScreen1(
 
     session?.let { sessionData ->
 
-//        val mapPoints = if ((sessionData.distance ?: 0.0) < 50 || sessionData.points.isNullOrEmpty()) {
-//            fakePoints
-//        } else {
-//            sessionData.points
-//        }
         val mapPoints = sessionData.points.orEmpty()
         Box(
             modifier = Modifier
@@ -53,7 +41,7 @@ fun SessionDetailScreen1(
                 .systemBarsPadding()
         ) {
 
-            // 🗺️ MAP AS BACKGROUND
+            // MAP AS BACKGROUND
 
             if (mapPoints.isNotEmpty()) {
                 OpenStreetMapView(
@@ -65,7 +53,6 @@ fun SessionDetailScreen1(
             }
 
 
-            // 🌈 SESSION INFO CARD (FLOATING)
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -106,12 +93,16 @@ fun SessionDetailScreen1(
 
                     Text(
                         text = "Start: ${formatTime(sessionData.startTime ?: 0)}",
-                        fontSize = 13.sp
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
                     Text(
                         text = "End: ${formatTime(sessionData.endTime ?: 0)}",
-                        fontSize = 13.sp
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
                 }
             }
         }

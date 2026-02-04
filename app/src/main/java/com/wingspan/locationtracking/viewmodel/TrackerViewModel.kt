@@ -3,17 +3,14 @@ package com.wingspan.locationtracking.viewmodel
 
 import android.content.Context
 
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
 
-import com.wingspan.locationtracking.repository.SessionRepository
+import com.wingspan.locationtracking.data.data.repository.SessionRepository
 import com.wingspan.locationtracking.services.TrackingService
 import com.wingspan.locationtracking.utils.TrackingState
-import dagger.hilt.android.HiltAndroidApp
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,7 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import com.wingspan.locationtracking.database.Session
+import com.wingspan.locationtracking.data.data.local.Session
 import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
@@ -79,7 +76,7 @@ class TrackerViewModel @Inject constructor(
                     distance = TrackingService.getDistance(),
                     points = points
                 )
-                Log.d("stop tracking","${session}")
+                Log.d("data viewmodel stop","--${sessions}")
                 repository.insertSession(session)
 
                 session

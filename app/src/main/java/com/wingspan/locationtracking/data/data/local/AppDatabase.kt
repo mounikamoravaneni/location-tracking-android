@@ -1,8 +1,9 @@
-package com.wingspan.locationtracking.database
+package com.wingspan.locationtracking.data.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.wingspan.locationtracking.data.data.local.SessionDao
 
 @Database(
     entities = [Session::class],

@@ -1,7 +1,9 @@
-package com.wingspan.locationtracking.database
+package com.wingspan.locationtracking.di
 
 import android.content.Context
 import androidx.room.Room
+import com.wingspan.locationtracking.data.data.local.AppDatabase
+import com.wingspan.locationtracking.data.data.local.SessionDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

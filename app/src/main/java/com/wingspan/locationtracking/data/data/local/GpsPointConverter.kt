@@ -1,9 +1,9 @@
-package com.wingspan.locationtracking.database
+package com.wingspan.locationtracking.data.data.local
 
 import androidx.room.TypeConverter
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.wingspan.locationtracking.model.GpsPoint
+import com.wingspan.locationtracking.domain.model.GpsPoint
 
 class GpsPointConverter {
 

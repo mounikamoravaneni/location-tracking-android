@@ -1,4 +1,4 @@
-package com.wingspan.locationtracking
+package com.wingspan.locationtracking.ui.theme
 
 import android.os.Bundle
 import android.util.Log
@@ -15,11 +15,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.wingspan.locationtracking.bottomnavigation.HistoryScreen
-import com.wingspan.locationtracking.bottomnavigation.HomeScreen
-import com.wingspan.locationtracking.bottomnavigation.SessionDetailScreen
-import com.wingspan.locationtracking.ui.theme.LocationTrackingTheme
-import com.wingspan.locationtracking.ui.theme.SessionDetailScreen1
+import com.wingspan.locationtracking.ui.theme.screens.HistoryScreen
+import com.wingspan.locationtracking.ui.theme.screens.HomeScreen
+import com.wingspan.locationtracking.ui.theme.screens.MapViewScreen
+import com.wingspan.locationtracking.ui.theme.screens.SessionDetailScreen
 import com.wingspan.locationtracking.utils.TrackingState
 import com.wingspan.locationtracking.viewmodel.TrackerViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -31,7 +30,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             LocationTrackingTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
+                Surface(modifier = Modifier.Companion.fillMaxSize()) {
                     val navController = rememberNavController()
                     val trackerViewModel: TrackerViewModel = hiltViewModel()
                     val trackingState =
@@ -40,17 +39,19 @@ class MainActivity : ComponentActivity() {
                     val isTracking = trackingState is TrackingState.Tracking
                     val lastSession =
                         (trackingState as? TrackingState.Stopped)?.lastSession
-                    Log.d("data mainactivity","${isTracking}")
+                    Log.d("data mainactivity", "${isTracking}")
                     NavHost(
                         navController = navController,
                         startDestination = "home"
                     ) {
 
                         composable("home") {
+                            val sessions =
+                                trackerViewModel.sessions.collectAsState().value
                             HomeScreen(
                                 navController,
                                 isTracking = isTracking,
-                                lastSession = lastSession,
+                                sessions = sessions,
                                 onStartTracking = {
                                     trackerViewModel.startTracking(this@MainActivity)
                                 },
@@ -82,7 +83,7 @@ class MainActivity : ComponentActivity() {
                             "sessionDetail/{sessionId}",
                             arguments = listOf(
                                 navArgument("sessionId") {
-                                    type = NavType.StringType
+                                    type = NavType.Companion.StringType
                                 }
                             )
                         ) { backStackEntry ->
@@ -104,7 +105,7 @@ class MainActivity : ComponentActivity() {
 
                             val sessionId = backStack.arguments?.getString("sessionId") ?: ""
 
-                            SessionDetailScreen1(
+                            MapViewScreen(
                                 sessionId = sessionId,
                                 navController = navController
                             )

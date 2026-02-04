@@ -1,4 +1,4 @@
-package com.wingspan.locationtracking
+package com.wingspan.locationtracking.ui.theme.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
