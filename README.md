@@ -30,3 +30,6 @@ This is a location tracking app that allows users to record sessions, track rout
    ```bash
    git clone https://github.com/mounikamoravaneni/location-tracking-android
    cd location-tracking-app
+
+## Video Link
+https://youtu.be/hTshOXBI1XY?si=nnAz8uggo76eQVpb
