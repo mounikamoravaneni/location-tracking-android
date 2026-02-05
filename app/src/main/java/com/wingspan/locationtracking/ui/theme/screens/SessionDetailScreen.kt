@@ -2,9 +2,12 @@ package com.wingspan.locationtracking.ui.theme.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
@@ -23,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.wingspan.locationtracking.data.data.local.Session
+import com.wingspan.locationtracking.map.OpenStreetMapView
 import com.wingspan.locationtracking.ui.theme.LightSkyBlue
 import java.util.Date
 
@@ -35,54 +39,76 @@ fun SessionDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Session Details") },
+                title = { Text("Session") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(   imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
                     }
                 }
             )
         }
     ) { padding ->
-        session?.let { it ->
-            Column(
+
+        session?.let { data ->
+
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
 
-                // Colored Card for Session Details
+                // 🗺️ MAP BACKGROUND
+                if (data.points.isNotEmpty()) {
+                    OpenStreetMapView(
+                        points = data.points,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+
+                // 📊 INFO CARD (BOTTOM)
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.cardElevation(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .align(Alignment.BottomCenter),
+                    shape = RoundedCornerShape(20.dp),
+                    elevation = CardDefaults.cardElevation(10.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = LightSkyBlue.copy(alpha = 0.85f) // semi-transparent
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
                     )
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Text("Session ID", style = MaterialTheme.typography.titleMedium)
-                        Text(it.id)
+
+                        Text(
+                            "Session Summary",
+                            style = MaterialTheme.typography.titleMedium
+                        )
 
                         Divider()
 
-                        Text("Start Time: ${Date(it.startTime)}")
-                        Text("End Time: ${Date(it.endTime)}")
-                        Text("Duration: ${it.duration / 1000} sec")
-                        Text("Distance: ${"%.2f".format(it.distance)} m")
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            InfoItem("Distance", "${"%.2f".format(data.distance / 1000)} km")
+                            InfoItem("Duration", formatDuration(data.duration))
+                            InfoItem("Points", data.points.size.toString())
+                        }
 
                         Divider()
 
                         Text(
-                            text = "GPS Points: ${it.points.size}",
-                            style = MaterialTheme.typography.titleMedium
+                            "Start: ${Date(data.startTime)}",
+                            style = MaterialTheme.typography.bodySmall
                         )
 
-                        Text("Map view coming soon...")
+                        Text(
+                            "End: ${Date(data.endTime)}",
+                            style = MaterialTheme.typography.bodySmall
+                        )
                     }
                 }
             }

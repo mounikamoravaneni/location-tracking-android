@@ -1,13 +1,18 @@
 package com.wingspan.locationtracking.app
 
 import android.app.Application
+import android.preference.PreferenceManager
 import dagger.hilt.android.HiltAndroidApp
+import org.osmdroid.config.Configuration
 
 @HiltAndroidApp
 class LocationApp : Application() {
     override fun onCreate() {
         super.onCreate()
-        org.osmdroid.config.Configuration.getInstance()
-            .load(this, getSharedPreferences("osmdroid", MODE_PRIVATE))
+
+        Configuration.getInstance().load(
+            this,
+            PreferenceManager.getDefaultSharedPreferences(this)
+        )
     }
 }
