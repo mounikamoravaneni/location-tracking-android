@@ -22,9 +22,21 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }
-
+    signingConfigs {
+        create("release") {
+            val keystorePath = project.findProperty("KEYSTORE_FILE") as? String ?: "location.jks"
+            val storePassword = project.findProperty("KEYSTORE_PASSWORD") as? String ?: ""
+            val keyAlias = project.findProperty("KEY_ALIAS") as? String ?: ""
+            val keyPassword = project.findProperty("KEY_PASSWORD") as? String ?: ""
+            storeFile = file(keystorePath)
+            this.storePassword = storePassword
+            this.keyAlias = keyAlias
+            this.keyPassword = keyPassword
+        }
+    }
     buildTypes {
         release {
+            signingConfig= signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
