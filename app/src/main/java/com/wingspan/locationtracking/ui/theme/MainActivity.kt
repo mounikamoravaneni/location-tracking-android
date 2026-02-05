@@ -25,21 +25,28 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
         setContent {
             LocationTrackingTheme {
-                Surface(modifier = Modifier.Companion.fillMaxSize()) {
+                Surface(
+                    modifier = Modifier.fillMaxSize()
+                ) {
                     val navController = rememberNavController()
                     val trackerViewModel: TrackerViewModel = hiltViewModel()
+
                     val trackingState =
                         trackerViewModel.trackingState.collectAsState().value
 
                     val isTracking = trackingState is TrackingState.Tracking
                     val lastSession =
                         (trackingState as? TrackingState.Stopped)?.lastSession
-                    Log.d("data mainactivity", "${isTracking}")
+
+                    Log.d("MainActivity", "Is tracking: $isTracking")
+
                     NavHost(
                         navController = navController,
                         startDestination = "home"
@@ -48,8 +55,9 @@ class MainActivity : ComponentActivity() {
                         composable("home") {
                             val sessions =
                                 trackerViewModel.sessions.collectAsState().value
+
                             HomeScreen(
-                                navController,
+                                navController = navController,
                                 isTracking = isTracking,
                                 sessions = sessions,
                                 onStartTracking = {
@@ -69,53 +77,57 @@ class MainActivity : ComponentActivity() {
                                 trackerViewModel.sessions.collectAsState().value
 
                             HistoryScreen(
-                                navController,
+                                navController = navController,
                                 sessions = sessions,
                                 onSessionClick = { session ->
-                                    navController.navigate("sessionDetail/${session.id}")
+                                    navController.navigate(
+                                        "sessionDetail/${session.id}"
+                                    )
                                 },
-                                onBack = { navController.popBackStack() }
+                                onBack = {
+                                    navController.popBackStack()
+                                }
                             )
-
                         }
 
                         composable(
-                            "sessionDetail/{sessionId}",
+                            route = "sessionDetail/{sessionId}",
                             arguments = listOf(
                                 navArgument("sessionId") {
-                                    type = NavType.Companion.StringType
+                                    type = NavType.StringType
                                 }
                             )
                         ) { backStackEntry ->
+
                             val sessionId =
-                                backStackEntry.arguments?.getString("sessionId") ?: ""
+                                backStackEntry.arguments
+                                    ?.getString("sessionId")
+                                    .orEmpty()
 
                             val session =
                                 trackerViewModel.getSessionById(sessionId)
 
                             SessionDetailScreen(
                                 session = session,
-                                onBack = { navController.popBackStack() }
+                                onBack = {
+                                    navController.popBackStack()
+                                }
                             )
                         }
 
-                        composable(
-                            "sessionDetail/{sessionId}"
-                        ) { backStack ->
-
-                            val sessionId = backStack.arguments?.getString("sessionId") ?: ""
+                        composable("mapView/{sessionId}") { backStackEntry ->
+                            val sessionId =
+                                backStackEntry.arguments
+                                    ?.getString("sessionId")
+                                    .orEmpty()
 
                             MapViewScreen(
-                                sessionId = sessionId,
-                                navController = navController
+                                sessionId = sessionId
                             )
                         }
                     }
                 }
-
             }
-
         }
-
     }
 }

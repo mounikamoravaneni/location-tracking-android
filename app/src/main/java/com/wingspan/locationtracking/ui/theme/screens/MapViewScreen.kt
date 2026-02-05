@@ -20,7 +20,6 @@ import java.util.*
 @Composable
 fun MapViewScreen(
     sessionId: String,
-    navController: NavHostController,
     viewModel: TrackerViewModel = hiltViewModel()
 ) {
 
@@ -34,7 +33,7 @@ fun MapViewScreen(
 
     session?.let { sessionData ->
 
-        val mapPoints = sessionData.points.orEmpty()
+        val mapPoints = sessionData.points
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -80,8 +79,8 @@ fun MapViewScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        InfoItem("Distance", "${"%.2f".format((sessionData.distance ?: 0.0) / 1000)} km")
-                        InfoItem("Duration", formatDuration(sessionData.duration ?: 0))
+                        InfoItem("Distance", "${"%.2f".format(sessionData.distance / 1000)} km")
+                        InfoItem("Duration", formatDuration(sessionData.duration))
                         InfoItem("Points", mapPoints.size.toString())
                     }
 
@@ -92,13 +91,13 @@ fun MapViewScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "Start: ${formatTime(sessionData.startTime ?: 0)}",
+                        text = "Start: ${formatTime(sessionData.startTime)}",
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Text(
-                        text = "End: ${formatTime(sessionData.endTime ?: 0)}",
+                        text = "End: ${formatTime(sessionData.endTime)}",
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

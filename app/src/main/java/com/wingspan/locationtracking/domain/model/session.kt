@@ -6,9 +6,6 @@ data class GpsPoint(
     val timestamp: Long
 )
 
-
-
-
 data class TollRequest(
     val mapProvider: String,
     val polyline: String? = null,
